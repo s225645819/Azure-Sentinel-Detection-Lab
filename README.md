@@ -17,7 +17,7 @@ The goal of this project was to construct a fully functioning cloud-based Securi
 4. Temporarily disabled Windows Defender to allow malware execution, then utilized Atomic Red Team to simulate adversary techniques.
 
 ## MITRE ATT&CK Coverage
-**| Technique ID | Technique Name | Detection |**
+| Technique ID | Technique Name | Detection |
 |---|---|---|
 | T1059.001 | Command and Scripting Interpreter: PowerShell | Detection 1 |
 | T1136.001 | Create Account: Local Account | Detection 2 |
