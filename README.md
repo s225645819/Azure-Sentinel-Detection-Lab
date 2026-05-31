@@ -82,4 +82,3 @@ SecurityEvent
 | where FailureCount >= 5
 | sort by TimeGenerated desc
 ` ` `
-*(Insert `Detection-6.jpg` here)*
