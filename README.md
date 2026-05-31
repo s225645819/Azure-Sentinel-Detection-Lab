@@ -23,7 +23,6 @@ The goal of this project was to construct a fully functioning cloud-based Securi
 ### 1. PowerShell Obfuscation & Execution (T1059.001)
 **Scenario:** Attackers often use Base64 encoding or execution bypass flags to hide malicious PowerShell commands from defenders.
 **KQL Query:**
-` ` `kusto
 WindowsEvent
 | where Provider == "Microsoft-Windows-Sysmon" and EventID == 1
 | extend CommandLine = tostring(EventData.CommandLine), 
@@ -32,8 +31,6 @@ WindowsEvent
 | where Image has "powershell.exe"
 | where CommandLine contains "-enc" or CommandLine contains "-nop" or CommandLine contains "mimikatz"
 | project TimeGenerated, Computer, User, Image, CommandLine
-` ` `
-*(Insert `Detection-1.jpg` here)*
 
 ### 2. Local Account Creation for Persistence (T1136.001)
 **Scenario:** Attackers create local backdoor accounts to maintain access to a compromised host. Because native Event ID 4720 logging was disabled, the detection pivots to Sysmon process creation.
