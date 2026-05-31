@@ -16,6 +16,24 @@ The goal of this project was to construct a fully functioning cloud-based Securi
 3. Configured Azure Data Collection Rules (DCRs) to route native Windows Security Events and custom Sysmon `Operational` logs via the Azure Monitor Agent into Sentinel.
 4. Temporarily disabled Windows Defender to allow malware execution, then utilized Atomic Red Team to simulate adversary techniques.
 
+## MITRE ATT&CK Coverage
+**| Technique ID | Technique Name | Detection |**
+|---|---|---|
+| T1059.001 | Command and Scripting Interpreter: PowerShell | Detection 1 |
+| T1136.001 | Create Account: Local Account | Detection 2 |
+| T1047 | Windows Management Instrumentation | Detection 3 |
+| T1041 | Exfiltration Over C2 Channel | Detection 4 |
+| T1110 | Brute Force | Detection 5 |
+
+## How to Reproduce
+1. Deploy Windows Server 2019 VM in Azure
+2. Install Sysmon with SwiftOnSecurity config
+3. Configure Azure Monitor Agent (AMA) and Data Collection Rules (DCR)
+4. Connect logs to Log Analytics Workspace & Microsoft Sentinel
+5. Run Atomic Red Team tests: `Invoke-AtomicTest T1059.001 -TestNumbers 1`
+6. Paste KQL queries into Sentinel's Logs blade
+7. Screenshot results showing detection fired
+
 ---
 
 ## Detection Engineering & Threat Hunting
@@ -23,7 +41,7 @@ The goal of this project was to construct a fully functioning cloud-based Securi
 ### 1. PowerShell Obfuscation & Execution (T1059.001)
 **Scenario:** Attackers often use Base64 encoding or execution bypass flags to hide malicious PowerShell commands from defenders.
 **KQL Query:**
-` ` `WindowsEvent
+```WindowsEvent
 | where Provider == "Microsoft-Windows-Sysmon" and EventID == 1
 | extend CommandLine = tostring(EventData.CommandLine), 
          Image = tostring(EventData.Image),
@@ -31,13 +49,13 @@ The goal of this project was to construct a fully functioning cloud-based Securi
 | where Image has "powershell.exe"
 | where CommandLine contains "-enc" or CommandLine contains "-nop" or CommandLine contains "mimikatz"
 | project TimeGenerated, Computer, User, Image, CommandLine
-` ` `
+```
 ![PowerShell Obfuscation](<Detection-1 PowerShell Obfuscation & Execution (T1059.001).png>)
 
 ### 2. Local Account Creation for Persistence (T1136.001)
 **Scenario:** Attackers create local backdoor accounts to maintain access to a compromised host. Because native Event ID 4720 logging was disabled, the detection pivots to Sysmon process creation.
 **KQL Query:**
-` ` `
+```
 WindowsEvent
 | where Provider == "Microsoft-Windows-Sysmon" and EventID == 1 
 | extend CommandLine = tostring(EventData.CommandLine),
@@ -46,38 +64,38 @@ WindowsEvent
 | where (Image has "net.exe" or Image has "net1.exe") and CommandLine contains "user" and CommandLine contains "/add"
 | project TimeGenerated, Computer, User, Image, CommandLine
 | sort by TimeGenerated desc
-` ` `
+```
 ![Local Account Creation](<Detection-2 Local Account Creation for Persistence (T1136.001).png>)
 
 ### 3. WMI Reconnaissance & Lateral Movement (T1047)
 **Scenario:** Windows Management Instrumentation (WMI) is abused to gather system data or execute payloads remotely. 
 **KQL Query:**
-` ` `
+```
 WindowsEvent
 | where Provider == "Microsoft-Windows-Sysmon" and EventID == 1 
 | where EventData has "wmic.exe"
 | where EventData has "useraccount" 
 | project TimeGenerated, Computer, EventData
 | sort by TimeGenerated desc
-` ` `
+```
 ![WMI Reconnaissance](<Detection-3 WMI Reconnaissance & Lateral Movement (T1047).png>)
 
 ### 4. Data Exfiltration via C2 Channel (T1041)
 **Scenario:** Malware utilizing native script interpreters like PowerShell to open outbound network connections to external Command and Control (C2) servers.
 **KQL Query:**
-` ` `
+```
 WindowsEvent
 | where Provider == "Microsoft-Windows-Sysmon" and EventID == 3 
 | where EventData has "powershell.exe" 
 | project TimeGenerated, Computer, EventData
 | sort by TimeGenerated desc
-` ` `
+```
 ![C2 Exfiltration](<Detection-4 Data Exfiltration via C2 Channel (T1041).png>)
 
 ### 5. RDP Brute Force Attacks (T1110)
 **Scenario:** Live threat actors utilizing automated botnets to brute-force credential access on an internet-facing RDP port.
 **KQL Query:**
-` ` `
+```
 SecurityEvent
 | where EventID == 4625 
 | where LogonType == 2 or LogonType == 3  
@@ -85,5 +103,14 @@ SecurityEvent
 | summarize FailureCount=count() by TargetAccount, IpAddress, bin(TimeGenerated, 5m)
 | where FailureCount >= 5
 | sort by TimeGenerated desc
-` ` `
+```
 ![RDP Brute Force](<Detection-5 RDP Brute Force Attacks (T1110).png>)
+
+## Skills Demonstrated
+- Cloud SIEM configuration (Microsoft Sentinel, Log Analytics)
+- KQL query writing and threat hunting
+- Endpoint telemetry collection (Sysmon, Event Logs)
+- Attack simulation with Atomic Red Team
+- MITRE ATT&CK mapping and threat modeling
+- Custom detection rule engineering
+- Azure cloud infrastructure (VMs, networking, IAM)
