@@ -32,6 +32,7 @@ The goal of this project was to construct a fully functioning cloud-based Securi
 | where CommandLine contains "-enc" or CommandLine contains "-nop" or CommandLine contains "mimikatz"
 | project TimeGenerated, Computer, User, Image, CommandLine
 ` ` `
+![PowerShell Obfuscation](<Detection-1 PowerShell Obfuscation & Execution.png>)
 
 ### 2. Local Account Creation for Persistence (T1136.001)
 **Scenario:** Attackers create local backdoor accounts to maintain access to a compromised host. Because native Event ID 4720 logging was disabled, the detection pivots to Sysmon process creation.
@@ -46,6 +47,7 @@ WindowsEvent
 | project TimeGenerated, Computer, User, Image, CommandLine
 | sort by TimeGenerated desc
 ` ` `
+![Local Account Creation](<Detection-2 Local Account Creation for Persistence.png>)
 
 ### 3. WMI Reconnaissance & Lateral Movement (T1047)
 **Scenario:** Windows Management Instrumentation (WMI) is abused to gather system data or execute payloads remotely. 
@@ -58,6 +60,7 @@ WindowsEvent
 | project TimeGenerated, Computer, EventData
 | sort by TimeGenerated desc
 ` ` `
+![WMI Reconnaissance](<Detection-3 WMI Reconnaissance & Lateral Movement.png>)
 
 ### 4. Data Exfiltration via C2 Channel (T1041)
 **Scenario:** Malware utilizing native script interpreters like PowerShell to open outbound network connections to external Command and Control (C2) servers.
@@ -69,6 +72,7 @@ WindowsEvent
 | project TimeGenerated, Computer, EventData
 | sort by TimeGenerated desc
 ` ` `
+![C2 Exfiltration](<Detection-4 Data Exfiltration via C2 Channel.png>)
 
 ### 5. RDP Brute Force Attacks (T1110)
 **Scenario:** Live threat actors utilizing automated botnets to brute-force credential access on an internet-facing RDP port.
@@ -82,3 +86,4 @@ SecurityEvent
 | where FailureCount >= 5
 | sort by TimeGenerated desc
 ` ` `
+![RDP Brute Force](<Detection-5 RDP Brute Force Attacks (T1110).png>)
